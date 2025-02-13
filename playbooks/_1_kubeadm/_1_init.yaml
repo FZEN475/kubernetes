@@ -51,33 +51,33 @@
     - sed -i "s:CERTIFICATE_KEY:{{ lookup('ansible.builtin.file', '/run/secrets/CERTIFICATE_KEY') }}:g" /tmp/kubeadm_init.conf
     - sed -i "s:ADVERTISE_ADDRESS:{{ ansible_default_ipv4.address }}:g" /tmp/kubeadm_init.conf
 
-- name: Create master.
-  ansible.builtin.shell: "kubeadm init --config=/tmp/kubeadm_init.conf"
-  args:
-    executable: /bin/bash
-  when:
-    - cluster_exist.failed is true
-
-- name: Create join-command
-  ansible.builtin.shell: "{{ item }}"
-  with_items:
-    - 'echo "$(kubeadm token create --print-join-command) --control-plane --certificate-key $(kubeadm init phase upload-certs --upload-certs --config=/tmp/kubeadm_init.conf | tail -n1 )" > /tmp/manager'
-    - 'echo "$(kubeadm token create --print-join-command)" > /tmp/worker'
-
-- name: Copy join-command to ansible
-  ansible.builtin.fetch:
-    src: "/tmp/{{ item }}"
-    dest: /tmp/
-    flat: true
-  with_items:
-    - "manager"
-    - "worker"
-
-- name: Remove sensitive data
-  ansible.builtin.file:
-    path: "/tmp/{{ item }}"
-    state: absent
-  with_items:
-    - "kubeadm_init.conf"
-    - "manager"
-    - "worker"
+#- name: Create master.
+#  ansible.builtin.shell: "kubeadm init --config=/tmp/kubeadm_init.conf"
+#  args:
+#    executable: /bin/bash
+#  when:
+#    - cluster_exist.failed is true
+#
+#- name: Create join-command
+#  ansible.builtin.shell: "{{ item }}"
+#  with_items:
+#    - 'echo "$(kubeadm token create --print-join-command) --control-plane --certificate-key $(kubeadm init phase upload-certs --upload-certs --config=/tmp/kubeadm_init.conf | tail -n1 )" > /tmp/manager'
+#    - 'echo "$(kubeadm token create --print-join-command)" > /tmp/worker'
+#
+#- name: Copy join-command to ansible
+#  ansible.builtin.fetch:
+#    src: "/tmp/{{ item }}"
+#    dest: /tmp/
+#    flat: true
+#  with_items:
+#    - "manager"
+#    - "worker"
+#
+#- name: Remove sensitive data
+#  ansible.builtin.file:
+#    path: "/tmp/{{ item }}"
+#    state: absent
+#  with_items:
+#    - "kubeadm_init.conf"
+#    - "manager"
+#    - "worker"
