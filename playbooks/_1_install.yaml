@@ -12,7 +12,7 @@
     - name: Init cluster.
       ansible.builtin.include_tasks: ./_1_kubeadm/_1_init.yaml
       vars:
-        clear_etcd: false
+        clear_etcd: true
 
 - hosts: control
   name: Add master node.
