@@ -1,0 +1,22 @@
+---
+- name: Create admin.conf link
+  ansible.builtin.file:
+    src: "/etc/kubernetes/admin.conf"
+    path: "/root/.kube/config"
+    state: link
+    force: true
+    mode: '0644'
+
+- name: Add manager node
+  ansible.builtin.shell: "{{ lookup('ansible.builtin.file', '/tmp/manager') }}"
+  args:
+    executable: /bin/bash
+  when:
+    - master is true
+
+- name: Add worker node
+  ansible.builtin.shell: "{{ lookup('ansible.builtin.file', '/tmp/worker') }}"
+  args:
+    executable: /bin/bash
+  when:
+    - master is false

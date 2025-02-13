@@ -1,0 +1,55 @@
+- hosts: control_all
+  name: Reset cluster.
+  become: true
+  tasks:
+    - name: Reset cluster.
+      ansible.builtin.include_tasks: ./_1_kubeadm/_0_reset_cluster.yaml
+
+- hosts: control_main
+  name: Init cluster.
+  become: true
+  tasks:
+    - name: Init cluster.
+      ansible.builtin.include_tasks: ./_1_kubeadm/_1_init.yaml
+      vars:
+        clear_etcd: false
+
+#- hosts: control
+#  name: Add master node.
+#  become: true
+#  tasks:
+#    - name: Add master node.
+#      ansible.builtin.include_tasks: ./_1_kubeadm/_2_join.yaml
+#      vars:
+#        master: true
+#
+#- hosts: workers
+#  name: Add worker node.
+#  become: true
+#  tasks:
+#    - name: Add worker node.
+#      ansible.builtin.include_tasks: ./_1_kubeadm/_2_join.yaml
+#      vars:
+#        master: false
+#
+#- hosts: control_main
+#  name: Init network
+#  become: true
+#  tasks:
+#    - name: Init network
+#      ansible.builtin.include_tasks: ./_1_kubeadm/_3_network.yaml
+#
+#- hosts: servers
+#  name: Restart containerd
+#  become: true
+#  tasks:
+#    - name: Wait for calico.conflist present
+#      ansible.builtin.wait_for:
+#        path: /etc/cni/net.d/10-calico.conflist
+#        state: present
+#        msg: Timeout to find file /etc/cni/net.d/10-calico.conflist
+#    - name: Restart containerd
+#      ansible.builtin.service:
+#        name: containerd
+#        state: restarted
+#        enabled: true
