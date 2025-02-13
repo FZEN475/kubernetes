@@ -40,7 +40,7 @@
 
 - name: Copy kubeadm_init.conf
   ansible.builtin.copy:
-    src: '/ansible_root/config/kubeadm_init.conf'
+    src: '/source/config/kubeadm_init.conf'
     dest: '/tmp/kubeadm_init.conf'
   when:
     - cluster_exist.failed is true
