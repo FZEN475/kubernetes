@@ -51,6 +51,9 @@
     - sed -i "s:CERTIFICATE_KEY:$(cat /run/secrets/CERTIFICATE_KEY):g" /tmp/kubeadm_init.conf
     - sed -i "s:ADVERTISE_ADDRESS:{{ ansible_default_ipv4.address }}:g" /tmp/kubeadm_init.conf
 
+- name: Test
+  ansible.builtin.shell: cat /tmp/kubeadm_init.conf
+
 #- name: Create master.
 #  ansible.builtin.shell: "kubeadm init --config=/tmp/kubeadm_init.conf"
 #  args:
