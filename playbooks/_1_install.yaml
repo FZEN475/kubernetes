@@ -1,9 +1,9 @@
-#- hosts: control_all
-#  name: Reset cluster.
-#  become: true
-#  tasks:
-#    - name: Reset cluster.
-#      ansible.builtin.include_tasks: ./_1_kubeadm/_0_reset_cluster.yaml
+- hosts: control_all
+  name: Reset cluster.
+  become: true
+  tasks:
+    - name: Reset cluster.
+      ansible.builtin.include_tasks: ./_1_kubeadm/_0_reset_cluster.yaml
 
 - hosts: control_main
   name: Init cluster.
