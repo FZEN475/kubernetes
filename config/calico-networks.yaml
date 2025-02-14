@@ -23,7 +23,7 @@ spec:
   blockSize: 27
   vxlanMode: Never
   natOutgoing: true
-  nodeSelector: node-role.kubernetes.io/test == "storage"
+  nodeSelector: node-role.kubernetes.io/storage == "storage"
 ---
 apiVersion: projectcalico.org/v3
 kind: IPPool
