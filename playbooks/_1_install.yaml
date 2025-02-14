@@ -1,4 +1,4 @@
-- hosts: control_all
+- hosts: servers
   name: Reset cluster.
   become: true
   tasks:

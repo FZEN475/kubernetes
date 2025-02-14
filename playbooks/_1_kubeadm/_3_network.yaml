@@ -1,6 +1,6 @@
 ---
 - name: Set storage label
-  ansible.builtin.shell: "kubectl label node {{ item }} node-role.kubernetes.io/test=storage"
+  ansible.builtin.shell: "kubectl label node {{ item }} node-role.kubernetes.io/storage=storage"
   with_items: "{{ groups.storage }}"
   args:
     executable: /bin/bash
