@@ -5,6 +5,15 @@
   register: cluster_exist
   ignore_errors: true
 
+- name: Healthcheck etcd
+  ansible.builtin.shell: "etcdctl endpoint health --cacert='/etc/ssl/etcd/ca_etcd.pem' --cert='/etc/ssl/etcd/client.pem' --key='/etc/ssl/etcd/client-key.pem' --endpoints='https://192.168.2.2:2381'"
+  retries: 20
+  delay: 5
+  args:
+    executable: /bin/bash
+  register: is_alive
+  until: "is_alive.rc == 0"
+
 - name: Get etcd keys list
   ansible.builtin.shell: "etcdctl get '' --keys-only --prefix=true --cacert='/etc/ssl/etcd/ca_etcd.pem' --cert='/etc/ssl/etcd/client.pem' --key='/etc/ssl/etcd/client-key.pem' --endpoints='https://192.168.2.2:2381' "
   args:
@@ -28,15 +37,6 @@
     state: link
     force: true
     mode: '0644'
-
-- name: Healthcheck etcd
-  ansible.builtin.shell: "etcdctl endpoint health --cacert='/etc/ssl/etcd/ca_etcd.pem' --cert='/etc/ssl/etcd/client.pem' --key='/etc/ssl/etcd/client-key.pem' --endpoints='https://192.168.2.2:2381'"
-  retries: 20
-  delay: 5
-  args:
-    executable: /bin/bash
-  register: is_alive
-  until: "is_alive.rc == 0"
 
 - name: Copy kubeadm_init.conf
   ansible.builtin.copy:
