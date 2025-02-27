@@ -54,7 +54,78 @@
 
 
 
+## Troubleshoots
 
+<!DOCTYPE html>
+<table>
+  <thead>
+    <tr>
+      <th>Проблема</th>
+      <th>Решение</th>
+    </tr>
+  </thead>
+  <tr>
+      <td>Из контейнера не определяется DNS имя без домена.</td>
+      <td>
+На хосте докера:  
+/etc/docker/daemon.json
+
+```json
+{
+  "dns": ["192.168.2.1","8.8.8.8"]
+}
+```
+</td>
+  </tr>
+  <tr>
+  </tr>
+  <tr>
+      <td>CoreDNS не видит домен fzen.pro</td>
+      <td>
+
+[Причина]()
+```shell
+kubectl edit -n kube-system cm/coredns
+```
+```yaml
+data:
+  Corefile: |
+    .:53 {
+        errors
+        log
+        health {
+            lameduck 5s
+        }
+        ready
+        template IN A fzen.pro {
+            match "(^\w*[.]|^.*[.]pages[.])fzen[.]pro[.]$"
+            answer "{{ .Name }}  60  IN  A  192.168.2.2"
+            fallthrough
+        }
+        kubernetes fzen.pro in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa  ip6.arpa
+            ttl 30
+        }
+        prometheus :9153
+        forward . /etc/resolv.conf {
+            max_concurrent 1000
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+
+```
+
+[//]: # (TODO: Не удалось сделать forward на верхний DNS. Домен fzen.pro управляется kubernetes и любые попытки добавить правила для fzen.pro мешают работе плагина kubernetes.)
+
+</td>
+  </tr>
+  <tr>
+  </tr>
+</table>
 
 
 
