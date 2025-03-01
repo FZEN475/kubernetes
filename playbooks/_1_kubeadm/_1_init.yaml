@@ -81,3 +81,15 @@
     - "kubeadm_init.conf"
     - "manager"
     - "worker"
+
+- name: Patch coredns
+  kubernetes.core.k8s:
+    state: present
+    namespace: kube-system
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: coredns
+      data:
+        Corefile: "{{ lookup('ansible.builtin.file', '/source/config/Corefile') }}"

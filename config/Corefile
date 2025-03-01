@@ -1,0 +1,23 @@
+.:53 {
+    errors
+    health {
+        lameduck 5s
+    }
+    ready
+    template IN A fzen.pro {
+        match "(^\w*[.]|^.*[.]pages[.])fzen[.]pro[.]$"
+        answer "{{ .Name }}  60  IN  A  192.168.2.2"
+        fallthrough
+    }
+    kubernetes . fzen.pro in-addr.arpa ip6.arpa {
+        pods insecure
+        fallthrough in-addr.arpa ip6.arpa
+        ttl 30
+    }
+    prometheus :9153
+    forward . /etc/resolv.conf
+    cache 30
+    loop
+    reload
+    loadbalance
+}
