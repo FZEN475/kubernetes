@@ -1,0 +1,48 @@
+installation:
+  cni:
+    type: Calico
+  #    ipam:
+  #      type: HostLocal
+  calicoNetwork:
+    #    bgp: Disabled
+    ipPools: []
+    nodeAddressAutodetectionV4:
+      canReach: 8.8.8.8
+  #    ipPools:
+  #      - cidr: 192.168.2.64/26
+  #      - cidr: 192.168.4.0/23
+  #        blockSize: 27
+  #        encapsulation: IPIP
+  #        nodeSelector: all()
+  #        natOutgoing: Enabled
+  #        nodeSelector: kubernetes.io/hostname == "control01"
+  #      - cidr: 10.244.0.0/24
+  #        encapsulation: VXLAN
+  #        encapsulation: IPIP
+  #        nodeSelector: kubernetes.io/hostname == "control02"
+  #      - cidr: 192.168.50.0/24
+  #        encapsulation: IPIP
+  #        nodeSelector: kubernetes.io/hostname == "control03"
+  typhaDeployment:
+    spec:
+      template:
+        spec:
+          tolerations:
+            - key: "node-role.kubernetes.io/control-plane"
+              operator: "Exists"
+              effect: "NoSchedule"
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/os
+                        operator: In
+                        values:
+                          - linux
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 1
+                  preference:
+                    matchExpressions:
+                      - key: node-role.kubernetes.io/control-plane
+                        operator: Exists

@@ -1,0 +1,49 @@
+
+---
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: control-plane-pool
+spec:
+  cidr: 192.180.0.0/25
+  blockSize: 27
+  #  ipipMode: Never
+  #  vxlanMode: Always
+  vxlanMode: Never
+  natOutgoing: true
+  #  nodeSelector: all()
+  nodeSelector: node-role.kubernetes.io/control-plane == ""
+---
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: test-pool
+spec:
+  cidr: 192.180.0.128/25
+  blockSize: 27
+  vxlanMode: Never
+  natOutgoing: true
+  nodeSelector: node-role.kubernetes.io/storage == "storage"
+---
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: dev-pool
+spec:
+  cidr: 192.180.1.0/25
+  blockSize: 27
+  vxlanMode: Never
+  natOutgoing: true
+  nodeSelector: node-role.kubernetes.io/dev == "dev"
+---
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: prod-pool
+spec:
+  cidr: 192.180.1.128/25
+  blockSize: 27
+  vxlanMode: Never
+  natOutgoing: true
+  nodeSelector: node-role.kubernetes.io/prod == "prod"
+

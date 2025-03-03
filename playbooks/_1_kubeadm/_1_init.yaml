@@ -1,0 +1,95 @@
+
+- name: Get Cluster information
+  kubernetes.core.k8s_cluster_info:
+    kubeconfig: "/root/.kube/config"
+  register: cluster_exist
+  ignore_errors: true
+
+- name: Healthcheck etcd
+  ansible.builtin.shell: "etcdctl endpoint health --cacert='/etc/ssl/etcd/ca_etcd.pem' --cert='/etc/ssl/etcd/client.pem' --key='/etc/ssl/etcd/client-key.pem' --endpoints='https://192.168.2.2:2381'"
+  retries: 20
+  delay: 5
+  args:
+    executable: /bin/bash
+  register: is_alive
+  until: "is_alive.rc == 0"
+
+- name: Get etcd keys list
+  ansible.builtin.shell: "etcdctl get '' --keys-only --prefix=true --cacert='/etc/ssl/etcd/ca_etcd.pem' --cert='/etc/ssl/etcd/client.pem' --key='/etc/ssl/etcd/client-key.pem' --endpoints='https://192.168.2.2:2381' "
+  args:
+    executable: /bin/bash
+  register: etcd_keys
+  when:
+    - clear_etcd is true and cluster_exist.failed is true
+
+- name: Clear etcd database
+  ansible.builtin.shell: "etcdctl --cacert='/etc/ssl/etcd/ca_etcd.pem' --cert='/etc/ssl/etcd/client.pem' --key='/etc/ssl/etcd/client-key.pem' --endpoints='https://192.168.2.2:2381' del {{ item }} --prefix"
+  args:
+    executable: /bin/bash
+  with_items: "{{etcd_keys.stdout_lines | reject('match', '^$') }}"
+  when:
+    - clear_etcd is true and cluster_exist.failed is true and etcd_keys.stdout_lines | length > 0
+
+- name: Create admin.conf link
+  ansible.builtin.file:
+    src: "/etc/kubernetes/admin.conf"
+    path: "/root/.kube/config"
+    state: link
+    force: true
+    mode: '0644'
+
+- name: Copy kubeadm_init.conf
+  ansible.builtin.copy:
+    src: '/source/config/kubeadm_init.conf'
+    dest: '/tmp/kubeadm_init.conf'
+  when:
+    - cluster_exist.failed is true
+
+- name: Inject sensitive data
+  ansible.builtin.shell: "{{ item }}"
+  with_items:
+    - sed -i "s:CERTIFICATE_KEY:{{ lookup('ansible.builtin.file', '/run/secrets/CERTIFICATE_KEY') }}:g" /tmp/kubeadm_init.conf
+    - sed -i "s:ADVERTISE_ADDRESS:{{ ansible_default_ipv4.address }}:g" /tmp/kubeadm_init.conf
+
+- name: Create master.
+  ansible.builtin.shell: "kubeadm init --config=/tmp/kubeadm_init.conf"
+  args:
+    executable: /bin/bash
+  when:
+    - cluster_exist.failed is true
+
+- name: Create join-command
+  ansible.builtin.shell: "{{ item }}"
+  with_items:
+    - 'echo "$(kubeadm token create --print-join-command) --control-plane --certificate-key $(kubeadm init phase upload-certs --upload-certs --config=/tmp/kubeadm_init.conf | tail -n1 )" > /tmp/manager'
+    - 'echo "$(kubeadm token create --print-join-command)" > /tmp/worker'
+
+- name: Copy join-command to ansible
+  ansible.builtin.fetch:
+    src: "/tmp/{{ item }}"
+    dest: /tmp/
+    flat: true
+  with_items:
+    - "manager"
+    - "worker"
+
+- name: Remove sensitive data
+  ansible.builtin.file:
+    path: "/tmp/{{ item }}"
+    state: absent
+  with_items:
+    - "kubeadm_init.conf"
+    - "manager"
+    - "worker"
+
+- name: Patch coredns
+  kubernetes.core.k8s:
+    state: present
+    namespace: kube-system
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: coredns
+      data:
+        Corefile: "{{ lookup('ansible.builtin.file', '/source/config/Corefile') }}"

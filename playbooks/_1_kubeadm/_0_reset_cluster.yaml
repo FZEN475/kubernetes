@@ -1,0 +1,53 @@
+
+- name: Reset cluster
+  ansible.builtin.shell: "kubeadm reset -f"
+  args:
+    executable: /bin/bash
+  register: cluster_reset
+  ignore_errors: true
+
+- name: Remove cni drivers (calico)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/opt/cni/bin/"
+    - "/etc/cni/net.d/"
+
+- name: Create cni driver empty dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "/opt/cni/bin/"
+    - "/etc/cni/net.d/"
+
+- name: Set the policy for the INPUT chain to DROP
+  ansible.builtin.iptables:
+    chain: INPUT
+    policy: ACCEPT
+  with_items:  [ 'INPUT', 'FORWARD', 'OUTPUT' ]
+
+- name: Iptables flush filter
+  ansible.builtin.iptables:
+    flush: true
+
+- name: Drop vx networks
+  ansible.builtin.shell: "{{ item }}"
+  with_items:
+    - "iptables -X"
+    - "ip route flush proto bird"
+    - "ip link list | grep doc | awk '{print $2}' | cut -c 1-15 | xargs -I {} ip link delete {}"
+    - "ip link list | grep cali | awk '{print $2}' | cut -c 1-15 | xargs -I {} ip link delete {}"
+    - "ip link list | grep xv | awk '{print $2}' | cut -c 1-15 | xargs -I {} ip link delete {}"
+    - "ip link list | grep xe | awk '{print $2}' | cut -c 1-15 | xargs -I {} ip link delete {}"
+    - "modprobe -r ipip"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+
+- name: Restart Docker
+  ansible.builtin.service:
+    name: docker
+    state: restarted
+    enabled: true

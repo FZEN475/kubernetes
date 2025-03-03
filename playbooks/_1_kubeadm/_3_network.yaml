@@ -1,0 +1,55 @@
+---
+- name: Set storage label
+  ansible.builtin.shell: "kubectl label node {{ item }} node-role.kubernetes.io/storage=storage"
+  with_items: "{{ groups.storage }}"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+
+- name: Set dev label
+  ansible.builtin.shell: "kubectl label node {{ item }} node-role.kubernetes.io/dev=dev"
+  with_items: "{{ groups.dev }}"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+
+- name: Set prod label
+  ansible.builtin.shell: "kubectl label node {{ item }} node-role.kubernetes.io/prod=prod"
+  with_items: "{{ groups.prod }}"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+
+- name: Upload network config
+  ansible.builtin.copy:
+    src: '/source/config/{{ item }}'
+    dest: '/tmp/{{ item }}'
+    mode: '0644'
+  with_items:
+    - "calico-networks.yaml"
+    - "calico-values.yaml"
+
+- name: Add helm chart tigera operator
+  kubernetes.core.helm_repository:
+    name: "{{ item.name }}"
+    repo_url: "{{ item.url }}"
+    repo_state: "present"
+    force_update: true
+  with_items:
+    - {name: "projectcalico ", url: "https://docs.tigera.io/calico/charts"}
+
+- name: Install tigera operator
+  kubernetes.core.helm:
+    name: calico
+    chart_ref: projectcalico/tigera-operator
+    release_namespace: kube-system
+    create_namespace: true
+    state: present
+    values_files:
+      - "/tmp/calico-values.yaml"
+
+- name: Create IPPool
+  ansible.builtin.shell: "kubectl-calico create -f /tmp/calico-networks.yaml"
+  args:
+    executable: /bin/bash
+  register: IPPool_dump

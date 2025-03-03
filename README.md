@@ -1,93 +1,347 @@
 # kubernetes
-
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.fzen.pro/github/kubernetes.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.fzen.pro/github/kubernetes/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
 ## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+* Кластер устанавливается через kubeadm [kubeadm_init.conf](https://github.com/FZEN475/kubernetes/blob/main/config/kubeadm_init.conf).
+  * InitConfiguration
+    * Ключ шифрования сертификатов передаётся через секрет.
+  * KubeletConfiguration
+    * Включен swap.
+    * Управление ресурсами systemd.
+* Управление сетью [tigera calico](https://docs.tigera.io/calico/latest/about/).
+  * bgp включен.
+  * xVlan включен.
+* Внешний etcd.
+## Network
+| Сеть             | Назначение                 | Comment |
+|:-----------------|:---------------------------|:--------|
+| 192.170.0.0/23   | Сервисы.                   |         |
+| 192.180.0.0/23   | Вся подсеть подов.         |         |
+| 192.180.0.0/25   | Подсеть управляющих подов. |         |
+| 192.180.0.128/25 | Подсеть подов хранилищ.    |         |
+| 192.180.1.0/25   | Подсеть подов разработки.  |         |
+| 192.180.1.128/25 | Подсеть подов продакшена.  |         |
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Resource Balancings
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+<details><summary> table </summary>
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-9wq8" rowspan="3">request<br>items</th>
+    <th class="tg-0pky" colspan="2">control01</th>
+    <th class="tg-0pky" colspan="2">control02</th>
+    <th class="tg-0pky" colspan="2">control3</th>
+    <th class="tg-0pky" colspan="2">storage01</th>
+    <th class="tg-0pky" colspan="2">dev01</th>
+    <th class="tg-0pky" colspan="2">prod01</th>
+  </tr>
+  <tr>
+    <th class="tg-0pky">cpu</th>
+    <th class="tg-0pky">ram</th>
+    <th class="tg-0pky">cpu</th>
+    <th class="tg-0pky">ram</th>
+    <th class="tg-0pky">cpu</th>
+    <th class="tg-0pky">ram</th>
+    <th class="tg-0pky">cpu</th>
+    <th class="tg-0pky">ram</th>
+    <th class="tg-0pky">cpu</th>
+    <th class="tg-0pky">ram</th>
+    <th class="tg-0pky">cpu</th>
+    <th class="tg-0pky">ram</th>
+  </tr>
+  <tr>
+    <th class="tg-ti2n">10000</th>
+    <th class="tg-ti2n">6144</th>
+    <th class="tg-ti2n">10000</th>
+    <th class="tg-ti2n">6144</th>
+    <th class="tg-ti2n">10000</th>
+    <th class="tg-ti2n">6144</th>
+    <th class="tg-ti2n">10000</th>
+    <th class="tg-ti2n">6144</th>
+    <th class="tg-ti2n">10000</th>
+    <th class="tg-ti2n">6144</th>
+    <th class="tg-ti2n">10000</th>
+    <th class="tg-ti2n">6144</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-qm20">prometheus</td>
+    <td class="tg-ti2n">1400</td>
+    <td class="tg-ti2n">1536</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">grafana</td>
+    <td class="tg-ti2n">400</td>
+    <td class="tg-ti2n">400</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">dashboard</td>
+    <td class="tg-ti2n">400</td>
+    <td class="tg-ti2n">800</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">NFS</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">150</td>
+    <td class="tg-ti2n">128</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">cert-manager</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">600</td>
+    <td class="tg-ti2n">512</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">ingress</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">1000</td>
+    <td class="tg-ti2n">1024</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">vault</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">1500</td>
+    <td class="tg-ti2n">1024</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">external-secrets</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">1500</td>
+    <td class="tg-ti2n">1024</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">reloader</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">250</td>
+    <td class="tg-ti2n">128</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">gitlab</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">2000</td>
+    <td class="tg-ti2n">2080</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">1000</td>
+    <td class="tg-ti2n">1024</td>
+    <td class="tg-ti2n">1500</td>
+    <td class="tg-ti2n">1536</td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">minio</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">1000</td>
+    <td class="tg-ti2n">1024</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">pgsql</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">1000</td>
+    <td class="tg-ti2n">1024</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">pgadmin</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">1000</td>
+    <td class="tg-ti2n">512</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+  <tr>
+    <td class="tg-qm20">redis</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-ti2n">3450</td>
+    <td class="tg-ti2n">2136</td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+    <td class="tg-qm20"></td>
+  </tr>
+</tbody></table>
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+</details>
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## Dependency
+* [Образ](https://github.com/FZEN475/ansible-image)
+* [Library](https://github.com/FZEN475/ansible-library)
+* <details><summary> .env </summary>
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+  ```properties
+  TERRAFORM_REPO="https://github.com/FZEN475/kubernetes.git"
+  #GIT_EXTRA_PARAM="-btemp_branch"
+  SECURE_SERVER=""
+  SECURE_PATH=""
+  LIBRARY="https://github.com/FZEN475/ansible-library.git"
+  ``` 
+  </details>
+* <details><summary> secrets </summary>
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+  ```yaml
+  secrets:
+    - id_ed25519
+    - CERTIFICATE_KEY # Секрет с ключём шифрования сертификатов kubernetes (AES key of size 32 bytes)
+  ```
+  </details>
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Stages
+### [reset](https://github.com/FZEN475/kubernetes/blob/main/playbooks/_1_kubeadm/_0_reset_cluster.yaml)
+* Расформирование kubernetes кластера.
+* Удаление драйверов cni драйвера.
+* Сброс iptables.
+* Удаление vlan-интерфейсов.
+* Сброс всей маршрутизации и Vlan.
+* Перезапуск docker (для восстановления swarm).
+### [init](https://github.com/FZEN475/kubernetes/blob/main/playbooks/_1_kubeadm/_1_init.yaml)
+* Проверка доступности etcd.
+* Если сбрасываем базу.
+  * Очистка __**всей**__ базы etcd.
+* Создание рабочей [kubeadm_init.conf](https://github.com/FZEN475/kubernetes/blob/main/config/kubeadm_init.conf).
+* Создание мастера и join ссылок (в контейнере). 
+* [Перенастройка coredns](https://github.com/FZEN475/kubernetes/blob/main/config/Corefile) под текущую инфраструктуру.
+### [join](https://github.com/FZEN475/kubernetes/blob/main/playbooks/_1_kubeadm/_2_join.yaml)
+* Присоединение node к кластеру.
+### [network](https://github.com/FZEN475/kubernetes/blob/main/playbooks/_1_kubeadm/_3_network.yaml)
+* Маркировка node.
+* [Установка tigera-operator](https://github.com/FZEN475/kubernetes/blob/main/config/calico-values.yaml).
+* [Настройка IPPool](https://github.com/FZEN475/kubernetes/blob/main/config/calico-networks.yaml).
+### [Дополнительно](https://github.com/FZEN475/kubernetes?tab=readme-ov-file#Troubleshoots)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Troubleshoots
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+<!DOCTYPE html>
+<table>
+  <thead>
+    <tr>
+      <th>Проблема</th>
+      <th>Решение</th>
+    </tr>
+  </thead>
+  <tr>
+      <td>После присоединения NODE в статусе NotReady</td>
+      <td>
 
-## License
-For open source projects, say how it is licensed.
+После изменения конфигурации cni драйвера нужно перезапустить containerd.
+</td>
+  </tr>
+</table>
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+
+
+
+
